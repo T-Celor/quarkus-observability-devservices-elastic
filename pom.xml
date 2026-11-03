@@ -4,32 +4,22 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>io.quarkiverse</groupId>
+        <artifactId>quarkiverse-parent</artifactId>
+        <version>26</version>
+    </parent>
+
     <groupId>io.quarkiverse.observability</groupId>
     <artifactId>quarkus-observability-devservices-elastic-parent</artifactId>
     <version>1.0.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Quarkiverse - Observability Dev Services Elastic - Parent</name>
-    <description>Quarkus extension providing Elastic observability Dev Services with Testcontainers and Compose modes.</description>
+    <description>Quarkus extension providing Elastic observability Dev Services (Elasticsearch, Kibana, APM Server and an OpenTelemetry Collector), modelled on the Grafana LGTM dev service.</description>
     <url>https://github.com/quarkiverse/quarkus-observability-devservices-elastic</url>
 
-    <licenses>
-        <license>
-            <name>Apache License 2.0</name>
-            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
-            <distribution>repo</distribution>
-        </license>
-    </licenses>
-
-    <developers>
-        <developer>
-            <id>quarkiverse</id>
-            <name>Quarkiverse Community</name>
-            <url>https://github.com/quarkiverse</url>
-        </developer>
-    </developers>
-
     <scm>
-        <connection>scm:git:git://github.com/quarkiverse/quarkus-observability-devservices-elastic.git</connection>
+        <connection>scm:git:git@github.com:quarkiverse/quarkus-observability-devservices-elastic.git</connection>
         <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-observability-devservices-elastic.git</developerConnection>
         <url>https://github.com/quarkiverse/quarkus-observability-devservices-elastic</url>
         <tag>HEAD</tag>

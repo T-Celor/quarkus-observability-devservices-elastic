@@ -5,15 +5,13 @@ import io.quarkus.test.junit.QuarkusIntegrationTest;
 @QuarkusIntegrationTest
 class ElasticObservabilityDevServicesIT extends AbstractElasticObservabilityDevServicesEndpointTest {
 
-	@Override
-	protected boolean expectManagedOtlpEndpoint() {
-		return false;
-	}
+    @Override
+    protected boolean expectManagedOtlpEndpoint() {
+        return false;
+    }
 
-	@Override
-	protected boolean verifyDevServicesEndpoints() {
-		return false;
-	}
+    @Override
+    protected boolean verifyDevServicesEndpoints() {
+        return false;
+    }
 }
-
-

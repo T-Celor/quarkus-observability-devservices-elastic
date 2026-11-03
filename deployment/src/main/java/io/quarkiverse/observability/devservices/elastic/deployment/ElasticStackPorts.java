@@ -11,5 +11,3 @@ final class ElasticStackPorts {
     private ElasticStackPorts() {
     }
 }
-
-

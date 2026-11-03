@@ -23,7 +23,9 @@ import com.github.dockerjava.api.model.Ports;
 import io.quarkiverse.observability.devservices.elastic.runtime.ElasticDevServicesBuildTimeConfig;
 import io.quarkus.deployment.builditem.Startable;
 
-/** The four containers of the stack, owned by Quarkus: it starts them, restarts them when the config changes and closes them. */
+/**
+ * The four containers of the stack, owned by Quarkus: it starts them, restarts them when the config changes and closes them.
+ */
 final class ElasticStack implements Startable {
 
     static final Duration DEFAULT_STARTUP_TIMEOUT = Duration.ofMinutes(3);
