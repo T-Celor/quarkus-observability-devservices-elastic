@@ -23,6 +23,11 @@ Compose file precedence in Compose mode:
 
 When Compose mode is enabled, this extension does not fall back to Testcontainers.
 
+**Known limitation:** Compose Dev Services reads `quarkus.compose.devservices.files` at build time, so the extension cannot
+supply it as a default. In Compose mode, set `quarkus.compose.devservices.files` in your application (for example to your own
+compose file, or to `target/quarkus-devservices/elastic/compose-devservices.yml` once the extension has generated it). Without it
+no containers are started. Testcontainers mode (`quarkus.compose.devservices.enabled=false`) has no such requirement.
+
 Generated Compose assets are written to `target/quarkus-devservices/elastic/`.
 
 ## Modules
