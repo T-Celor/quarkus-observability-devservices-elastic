@@ -32,7 +32,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <argLine></argLine>
         <skipExtensionTests>true</skipExtensionTests>
-        <quarkus.version>3.40.1</quarkus.version>
+        <quarkus.version>3.40.1.1</quarkus.version>
         <sundrio-maven-plugin.version>0.300.0</sundrio-maven-plugin.version>
         <jandex-maven-plugin.version>3.5.1</jandex-maven-plugin.version>
         <maven.compiler-plugin.version>3.14.1</maven.compiler-plugin.version>
