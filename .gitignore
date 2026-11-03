@@ -1,0 +1,35 @@
+# Maven / Java
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+
+# Quarkus
+.quarkus/
+**/quarkus-app/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+
+# Docker / Compose local files
+.env
+.env.*
+!.env.example
+docker-compose.override.yml
+compose.override.yml
+*.pid
+
+
+# VS Code
+.vscode/
+

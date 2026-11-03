@@ -1,0 +1,15 @@
+name: Quarkus Observability Dev Services Elastic
+artifact: io.quarkiverse.observability:quarkus-observability-devservices-elastic::jar:1.0.0-SNAPSHOT
+description: Starts an Elastic + APM + OTel Collector dev stack and wires quarkus.otel.exporter.otlp.endpoint automatically.
+guide: https://docs.quarkiverse.io/quarkus-observability-devservices-elastic/dev/
+metadata:
+  keywords:
+    - observability
+    - devservices
+    - elastic
+    - opentelemetry
+  categories:
+    - observability
+  status: preview
+
+

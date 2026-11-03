@@ -1,0 +1,7 @@
+name: quarkus-observability-devservices-elastic
+title: Observability Dev Services Elastic
+version: dev
+nav:
+  - modules/ROOT/nav.adoc
+
+

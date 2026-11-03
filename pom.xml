@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>io.quarkiverse.observability</groupId>
+    <artifactId>quarkus-observability-devservices-elastic-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>Quarkiverse - Observability Dev Services Elastic - Parent</name>
+    <description>Quarkus extension providing Elastic observability Dev Services with Testcontainers and Compose modes.</description>
+    <url>https://github.com/quarkiverse/quarkus-observability-devservices-elastic</url>
+
+    <licenses>
+        <license>
+            <name>Apache License 2.0</name>
+            <url>https://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>quarkiverse</id>
+            <name>Quarkiverse Community</name>
+            <url>https://github.com/quarkiverse</url>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:git://github.com/quarkiverse/quarkus-observability-devservices-elastic.git</connection>
+        <developerConnection>scm:git:git@github.com:quarkiverse/quarkus-observability-devservices-elastic.git</developerConnection>
+        <url>https://github.com/quarkiverse/quarkus-observability-devservices-elastic</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <maven.compiler.release>17</maven.compiler.release>
+        <maven.compiler.parameters>true</maven.compiler.parameters>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <argLine></argLine>
+        <skipExtensionTests>true</skipExtensionTests>
+        <quarkus.version>3.40.1</quarkus.version>
+        <sundrio-maven-plugin.version>0.300.0</sundrio-maven-plugin.version>
+        <jandex-maven-plugin.version>3.5.1</jandex-maven-plugin.version>
+        <maven.compiler-plugin.version>3.14.1</maven.compiler-plugin.version>
+        <maven.surefire-plugin.version>3.5.4</maven.surefire-plugin.version>
+        <maven.jar-plugin.version>3.4.2</maven.jar-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.quarkus</groupId>
+                <artifactId>quarkus-bom</artifactId>
+                <version>${quarkus.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <modules>
+        <module>runtime</module>
+        <module>deployment</module>
+        <module>integration-tests</module>
+    </modules>
+
+    <build>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>${maven.compiler-plugin.version}</version>
+                    <configuration>
+                        <release>${maven.compiler.release}</release>
+                        <parameters>${maven.compiler.parameters}</parameters>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven.surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>@{argLine}</argLine>
+                        <systemPropertyVariables>
+                            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven.surefire-plugin.version}</version>
+                    <configuration>
+                        <argLine>@{argLine}</argLine>
+                        <systemPropertyVariables>
+                            <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        </systemPropertyVariables>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <artifactId>maven-jar-plugin</artifactId>
+                    <version>${maven.jar-plugin.version}</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.quarkus</groupId>
+                    <artifactId>quarkus-maven-plugin</artifactId>
+                    <version>${quarkus.version}</version>
+                    <extensions>true</extensions>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>io.sundr</groupId>
+                <artifactId>sundr-maven-plugin</artifactId>
+                <version>${sundrio-maven-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <inherited>false</inherited>
+                        <goals>
+                            <goal>generate-bom</goal>
+                        </goals>
+                        <configuration>
+                            <boms>
+                                <bom>
+                                    <artifactId>quarkus-observability-devservices-elastic-bom</artifactId>
+                                    <name>Quarkus Observability DevService Elastic</name>
+                                    <description>Centralized dependencyManagement for the Quarkus Observability DevService Elastic extension</description>
+                                    <properties>
+                                        <skipStagingRepositoryClose>true</skipStagingRepositoryClose>
+                                        <sonar.skip>true</sonar.skip>
+                                    </properties>
+                                    <modules>
+                                        <includes>
+                                            <include>*:quarkus-observability-devservices-elastic</include>
+                                            <include>*:quarkus-observability-devservices-elastic-deployment</include>
+                                        </includes>
+                                    </modules>
+                                </bom>
+                            </boms>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <profiles>
+        <profile>
+            <id>docs</id>
+            <activation>
+                <property>
+                    <name>performRelease</name>
+                    <value>!true</value>
+                </property>
+            </activation>
+            <modules>
+                <module>docs</module>
+            </modules>
+        </profile>
+    </profiles>
+</project>
+
