@@ -23,6 +23,7 @@ import io.restassured.response.Response;
 
 public abstract class AbstractElasticObservabilityDevServicesEndpointTest {
 
+    private static final String PREFIX = "observability.elastic.";
     private static final Duration STARTUP_TIMEOUT = Duration.ofSeconds(90);
     private static final Duration RETRY_INTERVAL = Duration.ofSeconds(2);
     private static final int SOCKET_CONNECT_TIMEOUT_MS = 1500;
@@ -35,10 +36,12 @@ public abstract class AbstractElasticObservabilityDevServicesEndpointTest {
             return;
         }
 
-        int elasticsearchPort = resolvedPort("elasticsearch-port", 9200);
-        int kibanaPort = resolvedPort("kibana-port", 5601);
-        int apmServerPort = resolvedPort("apm-server-port", 8200);
-        int otlpHttpPort = resolvedPort("otlp-http-port", 4318);
+        String host = getRequiredConfigValue(PREFIX + "host");
+        int elasticsearchPort = requiredPort("elasticsearch-port");
+        int kibanaPort = requiredPort("kibana-port");
+        int apmServerPort = requiredPort("apm-server-port");
+        int otlpGrpcPort = requiredPort("otlp-grpc-port");
+        int otlpHttpPort = requiredPort("otlp-http-port");
         String otlpExporterEndpoint = getRequiredConfigValue("quarkus.otel.exporter.otlp.endpoint");
 
         assertNotNull(otlpExporterEndpoint, "OTLP exporter endpoint must be configured");
@@ -49,15 +52,15 @@ public abstract class AbstractElasticObservabilityDevServicesEndpointTest {
         assertTrue(otlpUri.getPort() > 0, "OTLP exporter endpoint must include a port");
         assertEquals("http", otlpUri.getScheme(), "OTLP exporter endpoint should use HTTP scheme");
         if (expectManagedOtlpEndpoint()) {
-            assertEquals("127.0.0.1", otlpUri.getHost(),
-                    "OTLP exporter endpoint should target 127.0.0.1 from the test process");
+            assertEquals(host, otlpUri.getHost(), "OTLP exporter endpoint should target the stack host");
+            assertEquals(otlpGrpcPort, otlpUri.getPort(), "OTLP exporter endpoint should target the OTLP gRPC port");
         }
         assertPortOpen("otlp-exporter", otlpUri.getHost(), otlpUri.getPort());
 
-        assertHttpResponsive("elasticsearch", elasticsearchPort);
-        assertHttpResponsive("kibana", kibanaPort);
-        assertHttpResponsive("apm-server", apmServerPort);
-        assertHttpResponsive("otlp-http", otlpHttpPort);
+        assertHttpResponsive("elasticsearch", host, elasticsearchPort);
+        assertHttpResponsive("kibana", host, kibanaPort);
+        assertHttpResponsive("apm-server", host, apmServerPort);
+        assertHttpResponsive("otlp-http", host, otlpHttpPort);
     }
 
     private static String getRequiredConfigValue(String name) {
@@ -66,15 +69,9 @@ public abstract class AbstractElasticObservabilityDevServicesEndpointTest {
                 .orElseThrow(() -> new AssertionError("Missing required config: " + name));
     }
 
-    // The resolved key is only set when the extension picked the ports itself (Testcontainers mode).
-    private static int resolvedPort(String key, int defaultValue) {
-        String prefix = "quarkus.observability.devservices.elastic.";
-        return getConfigValue("observability.devservices.elastic.resolved." + key, getConfigValue(prefix + key, defaultValue));
-    }
-
-    private static int getConfigValue(String name, int defaultValue) {
-        Config config = ConfigProvider.getConfig();
-        return config.getOptionalValue(name, Integer.class).orElse(defaultValue);
+    // The extension publishes the ports it actually uses; they are random unless fixed in the config.
+    private static int requiredPort(String key) {
+        return Integer.parseInt(getRequiredConfigValue(PREFIX + key));
     }
 
     protected boolean expectManagedOtlpEndpoint() {
@@ -85,14 +82,14 @@ public abstract class AbstractElasticObservabilityDevServicesEndpointTest {
         return true;
     }
 
-    private static void assertHttpResponsive(String endpointName, int port) {
+    private static void assertHttpResponsive(String endpointName, String host, int port) {
         eventually(endpointName + " HTTP endpoint", () -> {
             Response response = RestAssured
                     .given()
                     .config(httpTimeoutConfig())
                     .redirects().follow(false)
                     .when()
-                    .get("http://127.0.0.1:" + port + "/");
+                    .get("http://" + host + ":" + port + "/");
             int status = response.getStatusCode();
             return status > 0 && status < 600;
         });

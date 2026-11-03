@@ -1,100 +1,63 @@
 # Quarkus Observability Dev Services Elastic
 
+Modelled on the Quarkus Grafana LGTM dev service (`quarkus-observability-devservices-lgtm`): same configuration shape,
+same discovery order, same launch-mode and Docker gates.
+
 ### Purpose
 
-- Start a local Elastic observability stack for Quarkus dev and test workflows.
-- Auto-configure `quarkus.otel.exporter.otlp.endpoint` to the host-facing OTLP gRPC endpoint exposed by the generated OpenTelemetry Collector.
-- Support Compose Dev Services when `quarkus.compose.devservices.enabled=true` and direct Testcontainers orchestration otherwise.
+- Start a local Elastic observability stack (Elasticsearch, Kibana, APM Server, OpenTelemetry Collector) for Quarkus dev and test workflows.
+- When OpenTelemetry is in the application, set `quarkus.otel.exporter.otlp.endpoint` to the OTLP gRPC receiver of the collector.
 
 ### Stack Topology
 
-- Services started by this extension:
-  - Elasticsearch
-  - Kibana
-  - Elastic APM Server
-  - OpenTelemetry Collector
 - Internal container-to-container communication always uses stable service aliases and standard container ports:
   - Kibana -> `http://elasticsearch:9200`
-  - APM Server -> `http://elasticsearch:9200`
-  - APM Server -> `http://kibana:5601`
+  - APM Server -> `http://elasticsearch:9200` and `http://kibana:5601`
   - OpenTelemetry Collector -> `http://apm-server:8200`
-- Only the host-published ports are configurable.
+- Host ports are random unless fixed in the configuration.
 
 ### Configuration
 
-- Main prefix: `quarkus.observability.devservices.elastic.*`
-- Core keys:
+- Prefix: `quarkus.observability.elastic.*`
+- Keys:
   - `enabled` (default `true`)
-  - `reuse` (default `false`, Testcontainers mode)
-  - `elasticsearch-image` (default `elasticsearch:9.5.5`)
-  - `kibana-image` (default `kibana:9.5.5`)
-  - `apm-server-image` (default `elastic/apm-server:9.5.5`)
-  - `otel-collector-image` (default `otel/opentelemetry-collector-contrib:0.164.0`)
+  - `enabled-in-tests` (default `false`; no effect in dev mode)
+  - `shared` (default `true`; dev mode only)
+  - `label` (default `quarkus-dev-service-elastic`; suffixed with the service name on each container)
+  - `service-name` (default `elastic`; value of those labels)
+  - `elasticsearch-image`, `kibana-image`, `apm-server-image`, `otel-collector-image`
   - `otel-collector-config` (optional custom collector YAML file)
-  - `elasticsearch-port` (default `9200`, host-published port)
-  - `kibana-port` (default `5601`, host-published port)
-  - `apm-server-port` (default `8200`, host-published port)
-  - `otlp-grpc-port` (default `4317`, host-published port)
-  - `otlp-http-port` (default `4318`, host-published port)
-- Compose-specific keys:
-  - `compose.files` (optional; used when global compose files are not set)
+  - `elasticsearch-port`, `kibana-port`, `apm-server-port`, `otlp-grpc-port`, `otlp-http-port` (optional; fixed host port when set, random otherwise)
 
-### Compose Dev Services Integration
+### Start-up Flow
 
-- Use global Quarkus Compose activation:
-  - `quarkus.compose.devservices.enabled=true`
-- Compose file precedence in compose mode:
-  1. `quarkus.compose.devservices.files` from the consuming app
-  2. `quarkus.observability.devservices.elastic.compose.files`
-  3. generated compose assets under `target/quarkus-devservices/elastic/`
-- In compose mode, this extension stays on Compose Dev Services (no Testcontainers fallback).
-- In Compose mode with app-level compose files, this extension provides a default for:
-  - `quarkus.compose.devservices.project-name` from `quarkus.observability.devservices.elastic.compose.project-name`
-- Generated assets are written under `target/quarkus-devservices/elastic/`.
-- Configure compose project-level options directly in the consuming app under `quarkus.compose.devservices.*`.
-- If a custom compose file is provided, keep its published ports aligned with the extension `*-port` settings so `quarkus.otel.exporter.otlp.endpoint` still matches the real host endpoint.
+1. Skip when the launch mode does not support Dev Services, Dev Services are disabled, `enabled=false`, test mode without `enabled-in-tests`, or no container runtime is available.
+2. `shared=true`: reuse containers carrying the `label` / `service-name` labels. All five endpoints must be found; a partial stack is not reused.
+3. Look for the stack in a Compose Dev Services project: a service is recognised by its image or by its service name
+   (`elasticsearch`, `kibana`, `apm-server`, `otel-collector`). Compose files are never generated or parsed by the extension.
+4. Otherwise start the four containers with Testcontainers; Quarkus owns their lifecycle.
 
-### OTLP Endpoint Publication
+### Published Config
 
-- The extension owns the default value of `quarkus.otel.exporter.otlp.endpoint`.
-- Compose mode publishes `http://127.0.0.1:<configured-otlp-grpc-port>/`.
-- Testcontainers mode publishes the resolved mapped host endpoint after the collector starts.
-- With the fixed-port mapping used by this extension, that normally resolves to `http://127.0.0.1:<configured-otlp-grpc-port>/`.
-
-### Port Conflict Policy
-
-- If all expected ports are already occupied by matching stack images, reuse the running stack.
-- If only part of the stack is already running on matching-image ports, fail fast (atomic reuse).
-- If an explicitly configured port is occupied by a different image, fail fast.
-- If a non-explicit port is occupied, choose another free host port for the new stack.
+- `quarkus.otel.exporter.otlp.endpoint` (only when OpenTelemetry is present): `http://<host>:<otlp-grpc-port>/`
+- `observability.elastic.host` and `observability.elastic.{elasticsearch,kibana,apm-server,otlp-grpc,otlp-http}-port`
 
 ### Generated Collector Configuration
 
-- Receivers:
-  - OTLP gRPC on `0.0.0.0:4317`
-  - OTLP HTTP on `0.0.0.0:4318`
-- Processor:
-  - `batch`
-- Exporter:
-  - OTLP to `http://apm-server:8200`
-  - `tls.insecure=true`
-- Pipelines:
-  - `metrics`
-  - `traces`
+- Receivers: OTLP gRPC on `0.0.0.0:4317`, OTLP HTTP on `0.0.0.0:4318`
+- Processor: `batch`
+- Exporter: OTLP HTTP to `http://apm-server:8200`
+- Pipelines: `metrics`, `traces`
 
 ### Testing
 
 - Keep one JVM test (`@QuarkusTest`) and one packaged test (`@QuarkusIntegrationTest`).
-- Validate:
-  - `quarkus.otel.exporter.otlp.endpoint` points to the configured host OTLP gRPC port
-  - Elasticsearch, Kibana, APM Server, OTLP gRPC, and OTLP HTTP are reachable
-- Use RestAssured for HTTP reachability and socket checks for pure TCP validation.
+- The integration tests need `quarkus.observability.elastic.enabled-in-tests=true` and `quarkus-opentelemetry`.
+- Validate that the OTLP endpoint points to the published gRPC port and that every endpoint is reachable.
 - Use bounded retries because container startup ordering is asynchronous.
 
 ### Common Pitfalls
 
-- Do not confuse configurable host ports with fixed internal container ports.
 - Do not inject `@ConfigProperty` fields in shared `@QuarkusIntegrationTest` bases; use runtime config lookup instead.
-- Avoid `container_name` in generated compose defaults when project isolation or reuse matters.
-- Do not assume custom compose files are parsed by the extension; the extension only knows the configured ports it publishes as defaults.
-
+- Without OpenTelemetry in the application the stack still starts but no OTLP endpoint is published.
+- `shared` only applies in dev mode.

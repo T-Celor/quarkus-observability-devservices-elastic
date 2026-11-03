@@ -1,29 +1,59 @@
 package io.quarkiverse.observability.devservices.elastic.runtime;
 
 import java.util.Optional;
+import java.util.OptionalInt;
 
 import io.quarkus.runtime.annotations.ConfigPhase;
 import io.quarkus.runtime.annotations.ConfigRoot;
 import io.smallrye.config.ConfigMapping;
 import io.smallrye.config.WithDefault;
 
+/**
+ * Same shape as the Quarkus Grafana LGTM dev service ({@code quarkus.observability.lgtm.*}): {@code enabled},
+ * {@code enabled-in-tests}, {@code shared} with a label and a service name, one optional fixed host port per service.
+ */
 @ConfigRoot(phase = ConfigPhase.BUILD_TIME)
-@ConfigMapping(prefix = "quarkus.observability.devservices.elastic")
+@ConfigMapping(prefix = "quarkus.observability.elastic")
 public interface ElasticDevServicesBuildTimeConfig {
 
     /**
-     * Enables the Elastic observability dev service stack in dev/test.
+     * If Dev Services has been explicitly enabled or disabled.
+     * <p>
+     * When enabled, Quarkus starts the Elastic observability stack in dev mode (and in test mode when
+     * {@code enabled-in-tests} is set) while a container runtime is available.
      */
     @WithDefault("true")
     boolean enabled();
 
     /**
-     * Enables container reuse for Testcontainers mode.
-     *
-     * Disabled by default so containers are stopped when the app/test run ends.
+     * Whether to start the Elastic observability Dev Services in test mode.
+     * <p>
+     * Disabled by default, like the LGTM dev service. It has no effect in dev mode.
      */
     @WithDefault("false")
-    boolean reuse();
+    boolean enabledInTests();
+
+    /**
+     * Whether the stack is shared between applications.
+     * <p>
+     * When shared, Quarkus first looks for running containers carrying the labels below, then for services of a Compose
+     * Dev Services project, and only starts new containers when nothing matches. Sharing is only used in dev mode.
+     */
+    @WithDefault("true")
+    boolean shared();
+
+    /**
+     * Prefix of the label attached to each started container (suffixed with the service name, for example
+     * {@code quarkus-dev-service-elastic-kibana}). Used for discovery when {@code shared} is {@code true}.
+     */
+    @WithDefault("quarkus-dev-service-elastic")
+    String label();
+
+    /**
+     * The value of the labels attached to the started containers. Used for discovery when {@code shared} is {@code true}.
+     */
+    @WithDefault("elastic")
+    String serviceName();
 
     /**
      * Elasticsearch container image.
@@ -51,74 +81,33 @@ public interface ElasticDevServicesBuildTimeConfig {
 
     /**
      * Optional path to a custom OpenTelemetry Collector configuration file.
-     *
+     * <p>
      * When not set, the extension generates a default collector configuration.
      */
     Optional<String> otelCollectorConfig();
 
     /**
-     * Host port used to expose Elasticsearch.
-     *
-     * The Elastic stack still communicates internally on the standard Elasticsearch port (9200).
+     * Host port of Elasticsearch. If set it is a fixed value, otherwise a free port is picked.
      */
-    @WithDefault("9200")
-    int elasticsearchPort();
+    OptionalInt elasticsearchPort();
 
     /**
-     * Host port used to expose Kibana.
-     *
-     * The Elastic stack still communicates internally on the standard Kibana port (5601).
+     * Host port of Kibana. If set it is a fixed value, otherwise a free port is picked.
      */
-    @WithDefault("5601")
-    int kibanaPort();
+    OptionalInt kibanaPort();
 
     /**
-     * Host port used to expose the Elastic APM Server.
-     *
-     * The Elastic stack still communicates internally on the standard APM Server port (8200).
+     * Host port of the Elastic APM Server. If set it is a fixed value, otherwise a free port is picked.
      */
-    @WithDefault("8200")
-    int apmServerPort();
+    OptionalInt apmServerPort();
 
     /**
-     * Host port used to expose the OTLP gRPC receiver.
-     *
-     * The OpenTelemetry Collector still listens internally on the standard OTLP gRPC port (4317).
+     * Host port of the OTLP gRPC receiver. If set it is a fixed value, otherwise a free port is picked.
      */
-    @WithDefault("4317")
-    int otlpGrpcPort();
+    OptionalInt otlpGrpcPort();
 
     /**
-     * Host port used to expose the OTLP HTTP receiver.
-     *
-     * The OpenTelemetry Collector still listens internally on the standard OTLP HTTP port (4318).
+     * Host port of the OTLP HTTP receiver. If set it is a fixed value, otherwise a free port is picked.
      */
-    @WithDefault("4318")
-    int otlpHttpPort();
-
-    /**
-     * Compose-mode specific options.
-     */
-    ComposeConfig compose();
-
-    interface ComposeConfig {
-
-        /**
-         * Optional extension compose file path used when global compose files are not configured.
-         *
-         * Precedence in compose mode:
-         * 1. quarkus.compose.devservices.files from the consuming application
-         * 2. this extension key
-         * 3. generated compose file under target/quarkus-devservices/elastic/
-         */
-        Optional<String> files();
-
-        /**
-         * Default compose project name used when not set globally by the consuming application.
-         */
-        @WithDefault("observability-elastic")
-        String projectName();
-
-    }
+    OptionalInt otlpHttpPort();
 }
-

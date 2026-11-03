@@ -22,10 +22,6 @@ final class ElasticStackTopology {
         return httpUrl(APM_SERVER_SERVICE, ElasticStackPorts.APM_SERVER);
     }
 
-    static String otlpGrpcEndpoint(int hostPort) {
-        return httpUrl("127.0.0.1", hostPort) + "/";
-    }
-
     static String[] apmServerCommand() {
         return new String[] {
                 "-e",
