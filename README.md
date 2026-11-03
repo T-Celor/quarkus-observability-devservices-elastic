@@ -112,6 +112,29 @@ quarkus:
 
 If you provide custom compose files, keep published host ports aligned with `quarkus.observability.devservices.elastic.*-port` so the generated OTLP endpoint remains accurate.
 
+## Try it
+
+Minimal app: add `quarkus-rest`, `quarkus-opentelemetry` and this extension, then use the Testcontainers path:
+
+```properties
+quarkus.application.name=demo-app
+quarkus.compose.devservices.enabled=false
+# quarkus-opentelemetry also starts the Grafana LGTM dev service by default; turn it off to keep only the Elastic stack
+quarkus.observability.lgtm.enabled=false
+```
+
+Run `mvn quarkus:dev`, call an endpoint a few times (`curl localhost:8080/hello`) and open Kibana at `http://localhost:5601`
+(Observability > Applications). The first start pulls the Elastic images, which can take several minutes.
+
+Verified locally with Quarkus 3.40.1 and Docker 26.1: Elasticsearch (9200), Kibana (5601), APM Server (8200) and the OTel Collector start,
+and the app's traces show up in Kibana APM.
+
+![Kibana APM service inventory showing demo-app](docs/modules/ROOT/images/kibana-apm-services.jpg)
+
+![Kibana APM traces showing GET /hello](docs/modules/ROOT/images/kibana-apm-traces.jpg)
+
+(Screenshots taken with a French-language browser, hence the French Kibana UI.)
+
 ## Documentation
 
 - Docs source: `docs/`
