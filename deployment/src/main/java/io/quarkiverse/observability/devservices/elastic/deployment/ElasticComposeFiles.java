@@ -90,7 +90,6 @@ final class ElasticComposeFiles {
                       - DAC_OVERRIDE
                       - SETGID
                       - SETUID
-                    environment:
                     command:
                       %s
                     depends_on:
