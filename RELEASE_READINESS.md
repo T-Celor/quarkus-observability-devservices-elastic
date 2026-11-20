@@ -13,7 +13,7 @@ This checklist tracks readiness against the Quarkiverse `ChecklistForNewProjects
 
 ### Requesting a new repository
 
-- [ ] Create an Extension Proposal issue in `quarkusio/quarkus`
+- [x] Create an Extension Proposal issue in `quarkusio/quarkus` (https://github.com/quarkusio/quarkus/issues/58578)
   - Scope: external process (GitHub issue)
   - Owner: extension maintainers
 - [ ] Ensure repository settings are managed in Quarkiverse DevOps `.tf`
