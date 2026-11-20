@@ -61,4 +61,4 @@
 
 - Do not inject `@ConfigProperty` fields in `@QuarkusIntegrationTest` classes; prefer runtime config lookup (`ConfigProvider`).
 - Ensure `integration-tests` runs Quarkus packaging before Failsafe (`quarkus-maven-plugin` with `build`).
-- `quarkus-opentelemetry` also starts the Grafana LGTM dev service by default; set `quarkus.observability.lgtm.enabled=false` to keep only Elastic.
+- This extension sets `quarkus.observability.lgtm.enabled=false` by default (lowest-priority `microprofile-config.properties`), so the Grafana LGTM dev service does not start alongside Elastic; set it to `true` explicitly to run both.

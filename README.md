@@ -99,8 +99,8 @@ Minimal app: add `quarkus-rest`, `quarkus-opentelemetry` and this extension:
 
 ```properties
 quarkus.application.name=demo-app
-# quarkus-opentelemetry also starts the Grafana LGTM dev service by default; turn it off to keep only the Elastic stack
-quarkus.observability.lgtm.enabled=false
+# This extension turns the Grafana LGTM dev service off by default; set it to true to run both
+# quarkus.observability.lgtm.enabled=true
 ```
 
 Run `mvn quarkus:dev`, call an endpoint a few times (`curl localhost:8080/hello`), look for the Kibana port in the log
