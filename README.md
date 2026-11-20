@@ -80,6 +80,10 @@ Internal service communication always stays on the standard ports:
 - APM Server -> `http://elasticsearch:9200` and `http://kibana:5601`
 - Collector -> `http://apm-server:8200`
 
+## Grafana LGTM dev service
+
+This extension sets `quarkus.observability.lgtm.enabled=false` by default, so adding it to a project that uses `quarkus-opentelemetry` starts Elastic instead of Grafana LGTM, with no extra configuration. The default is shipped in the runtime jar (`META-INF/microprofile-config.properties`, lowest priority): set `quarkus.observability.lgtm.enabled=true` in `application.properties`, a system property or an environment variable to run both stacks.
+
 ## Compose example
 
 Reuse a stack you run yourself with Compose Dev Services. Name the services `elasticsearch`, `kibana`, `apm-server` and
