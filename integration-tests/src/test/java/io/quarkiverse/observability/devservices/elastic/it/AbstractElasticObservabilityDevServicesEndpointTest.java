@@ -1,16 +1,15 @@
 package io.quarkiverse.observability.devservices.elastic.it;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
-import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.time.Duration;
-import java.time.Instant;
+import java.util.concurrent.Callable;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -110,35 +109,11 @@ public abstract class AbstractElasticObservabilityDevServicesEndpointTest {
         });
     }
 
-    private static void eventually(String operationName, CheckedBooleanSupplier assertion) {
-        Instant deadline = Instant.now().plus(STARTUP_TIMEOUT);
-        Throwable lastFailure = null;
-
-        while (Instant.now().isBefore(deadline)) {
-            try {
-                if (assertion.getAsBoolean()) {
-                    return;
-                }
-            } catch (Throwable t) {
-                lastFailure = t;
-            }
-
-            try {
-                Thread.sleep(RETRY_INTERVAL.toMillis());
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-                fail("Interrupted while waiting for " + operationName + " to become ready", e);
-            }
-        }
-
-        if (lastFailure == null) {
-            fail(operationName + " did not become ready within " + STARTUP_TIMEOUT.toSeconds() + " seconds");
-        }
-        fail(operationName + " did not become ready within " + STARTUP_TIMEOUT.toSeconds() + " seconds", lastFailure);
-    }
-
-    @FunctionalInterface
-    private interface CheckedBooleanSupplier {
-        boolean getAsBoolean() throws IOException;
+    private static void eventually(String operationName, Callable<Boolean> condition) {
+        await(operationName)
+                .atMost(STARTUP_TIMEOUT)
+                .pollInterval(RETRY_INTERVAL)
+                .ignoreExceptions()
+                .until(condition);
     }
 }
